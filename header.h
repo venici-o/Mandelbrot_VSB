@@ -5,13 +5,13 @@
 #include <omp.h>
 #include <pthread.h>
 
-#define MAX_REAL = 1
-#define MIN_REAL = -2
-#define MAX_IMG = 1.5
-#define MIN_IMG = -1.5
+#define MAX_REAL 1.0
+#define MIN_REAL -2.0
+#define MAX_IMG 1.5
+#define MIN_IMG -1.5
 
 int mandelbrot(double complex c, int max_iteracoes);
 float intensity(int iteracoes, int max_iteracoes);
-float getc(int altura_atual, int largura_atual, int altura_total, int largura_total);
+double complex calc_c(int largura_atual, int altura_atual, float incremento_x, float incremento_y);
 
 #endif

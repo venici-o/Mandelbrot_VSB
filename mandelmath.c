@@ -21,13 +21,9 @@ int mandelbrot(double complex c, int max_iteracoes){
     return i;
 }
 
-
-float calc_c(int altura_atual, int largura_atual, int altura_total, int largura_total){
-    float cx = (altura_atual/altura_total);
-    // EU TENHO QUE IMPLEMENTAR UMA FUNCAO QUE FAÇA O C PRA CADA MOMENTO DO GRAFICO;
-    // X PRO REAL, Y PRO IMAGINARIO; A CADA MOMENTO TEM QUE PEGAR ISSO, 
-    // MULTIPLICAR CADA UM PELO FATOR DE ALTERAÇÃO 
-    // ( ((MAX_REAL)-(MIN_REAL)*X) pro incremento real & (MAX_IMAG)-(MIN_IMAG)*X pro incremento imaginario) 
-    // E TRANSFORMAR NUM COMPLEX DOUBLE
-    // IMPORTANTE PACAS!!!!!!!
+double complex calc_c(int largura_atual, int altura_atual, float incremento_x, float incremento_y){
+    double 
+    real_c = MIN_REAL + incremento_x * largura_atual,
+    imag_c = MIN_IMG + incremento_y * altura_atual;
+    return CMPLX(real_c, imag_c);
 }

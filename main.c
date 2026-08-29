@@ -6,13 +6,14 @@
 #include "header.h"
 
 int main(int argc, char *argv[]) {
-    
+
+/*
     if (argc!=5){
         printf("[ERRO]Quantidade de argumentos inválida! A formatação deve ser:\n");
         printf("-> ./mandelbrot [largura] [altura] [max_iteracoes] [num_threads]");
         return -1;
     }
-
+*/
     int largura = (atoi(argv[1])),
     altura = (atoi(argv[2]));
 
@@ -27,14 +28,19 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    float incremento_x= (MAX_REAL-MIN_REAL)/(largura-1);
+    float incremento_y= (MAX_IMG-MIN_IMG)/(altura-1);
     
-    for (int i=0;i<altura;i++){
-        for (int j=0; j<largura; j++){
-            float c = getc(i, j, altura, largura);
-            int iteracoes=mandelbrot(c, max_iteracoes);
-        
+    //exemplo de serial
+    double complex current;
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+            current = calc_c(j,i,incremento_x,incremento_y);
+            printf("(%d, %d) C = %.2f + %.2f I", j, i, creal(current), cimag(current));
         }
-
+        printf("\n");
     }
+
+
     return 0;
 }
