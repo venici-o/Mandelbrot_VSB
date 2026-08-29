@@ -32,15 +32,30 @@ int main(int argc, char *argv[]) {
     float incremento_y= (MAX_IMG-MIN_IMG)/(altura-1);
     
     //exemplo de serial
-    double complex current;
-    for (int i = 0;i<altura;i++){
-        for (int j = 0;j<largura;j++){
-            current = calc_c(j,i,incremento_x,incremento_y);
-            printf("(%d, %d) C = %.2f + %.2f I", j, i, creal(current), cimag(current));
-        }
-        printf("\n");
+    FILE *fp = fopen("mandelbrot_mla_serial.pgm", "w");
+    if (fp==NULL){
+        fprintf(stderr, "[ERRO]Não foi possível abrir o arquivo");
+        return -1;
     }
 
+    int current_iteracoes;
+    float current_pixel;
+    double complex current_c;
+    
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+    
+            current_c = calc_c(j,i,incremento_x,incremento_y);
+            current_iteracoes = mandelbrot(current_c, max_iteracoes);
+            current_pixel = intensity(current_iteracoes, max_iteracoes);
+            fprintf(fp,"%d ", ((int)current_pixel));
+    
+        }
+    
+        fprintf(fp,"\n");
+    }
+    
+    fclose(fp);
 
     return 0;
 }

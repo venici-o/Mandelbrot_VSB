@@ -13,12 +13,11 @@ int mandelbrot(double complex c, int max_iteracoes){
 
     for (i=0;i<max_iteracoes;i++){
         z = (z * z) + c;
-        printf("\nZ%d = (%.2f)+(%.2fI)\n", i, creal(z), cimag(z));
         if (cabs(z)>2){
-            return max_iteracoes;
+            return i+1;
         }
     }
-    return i;
+    return max_iteracoes;
 }
 
 double complex calc_c(int largura_atual, int altura_atual, float incremento_x, float incremento_y){
