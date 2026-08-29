@@ -1,15 +1,18 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11
-TARGET = mandel
-OBJECTS = main.o mandelmath.o
+TARGET = mandelbrot
+OBJECTS = main.o mandelmath.o mandelgraph.o
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(TARGET) -lm
 
-maths.o : mandelmath.c mandelmath.h
+mandelmath.o : mandelmath.c header.h
 	$(CC) $(CFLAGS) -c mandelmath.c
 
-main.o: main.c mandelmath.h
+mandelgraph.o : mandelgraph.c header.h
+	$(CC) $(CFLAGS) -c mandelgraph.c
+
+main.o: main.c header.h
 	$(CC) $(CFLAGS) -c main.c
 
 clean:
