@@ -8,6 +8,16 @@
 #include <time.h>
 
 //Arquivo com funções relacionadas à geração gráfica
+typedef struct {
+    int id;
+    int num_threads;
+    int max_iteracoes;
+    int largura;
+    int altura;
+    float incremento_x;
+    float incremento_y;
+    int *save;
+} PThread;
 
 float intensity(int iteracoes, int max_iteracoes){
     float color = (255/(float)max_iteracoes)*iteracoes;
@@ -60,11 +70,111 @@ int exec_serial(int altura, int largura, float incremento_x, float incremento_y,
     free (save);
     double exec_time_serial = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
     
-    printf ("Tempo de Duração: %.9f", exec_time_serial);
+    printf ("Serial: %.9f\n", exec_time_serial);
     return 0;
 }
 
+//OpenMP
+int exec_openmp(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int threads){
+    struct timespec inicio;
+    struct timespec fim;
+    int *save= (int *)malloc(largura*altura*sizeof(int));
+    if (save==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
+        return -1;
+    }
 
-int exec_openpm(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
+    FILE *fp = fopen("mandelbrot_vsb_openmp.pgm", "w");
+    if (fp==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
+        free(save);
+        return -1;
+        
+    }
 
+    clock_gettime(CLOCK_MONOTONIC, &inicio);
+
+    // nota pra caso eu apresente: aparentemente, com menor quantidade de pixels,
+    // o serial é melhor do que o openmp
+    #pragma omp parallel for num_threads(threads) schedule(dynamic)
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+    
+            double complex current_c = calc_c(j,i,incremento_x,incremento_y);
+            int current_iteracoes = mandelbrot(current_c, max_iteracoes);
+            float current_pixel = intensity(current_iteracoes, max_iteracoes);
+            save[largura*i + j] = current_pixel;
+        }
+    }
+    clock_gettime(CLOCK_MONOTONIC, &fim);
+
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+            fprintf(fp,"%d ", save[largura*i + j]);
+        }
+    
+        fprintf(fp,"\n");
+    }
+    
+    fclose(fp);
+    free (save);
+    double exec_time_openmp = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+    
+    printf ("OpenMP: %.9f\n", exec_time_openmp);
+    return 0;
 }
+
+void *work_block(void*arg){
+    PThread *dados = (PThread *)arg;
+    return NULL;
+}
+
+int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int threads){
+    struct timespec inicio;
+    struct timespec fim;
+    int *save= (int *)malloc(largura*altura*sizeof(int));
+    if (save==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
+        return -1;
+    }
+
+    FILE *fp = fopen("mandelbrot_vsb_openmp.pgm", "w");
+    if (fp==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
+        free(save);
+        return -1;
+        
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &inicio);
+
+    // nota pra caso eu apresente: aparentemente, com menor quantidade de pixels,
+    // o serial é melhor do que o openmp
+    #pragma omp parallel for num_threads(threads) schedule(dynamic)
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+    
+            double complex current_c = calc_c(j,i,incremento_x,incremento_y);
+            int current_iteracoes = mandelbrot(current_c, max_iteracoes);
+            float current_pixel = intensity(current_iteracoes, max_iteracoes);
+            save[largura*i + j] = current_pixel;
+        }
+    }
+    clock_gettime(CLOCK_MONOTONIC, &fim);
+
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+            fprintf(fp,"%d ", save[largura*i + j]);
+        }
+    
+        fprintf(fp,"\n");
+    }
+    
+    fclose(fp);
+    free (save);
+    double exec_time_openmp = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+    
+    printf ("OpenMP: %.9f\n", exec_time_openmp);
+    return 0;
+}
+

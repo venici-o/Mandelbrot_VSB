@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    int threads = atoi(argv[4]);
+    int num_threads = atoi(argv[4]);
 
-    if (threads<1){
+    if (num_threads<1){
         fprintf(stderr,"[ERRO] O processo deve usar ao menos 1 thread.");
         return -1;
     }
@@ -45,9 +45,11 @@ int main(int argc, char *argv[]) {
     if (exec_serial(altura, largura, incremento_x, incremento_y, max_iteracoes) != 0) {
     return -1;
     }
-    
-    //Execução OpenPM
 
+    //Execução OpenPM
+    if (exec_openmp(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads) != 0) {
+    return -1;
+    }
 
     return 0;
 }
