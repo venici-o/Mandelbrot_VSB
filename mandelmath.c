@@ -4,6 +4,9 @@
 #include <omp.h>
 #include <pthread.h>
 #include "header.h"
+#include <time.h>
+#include <stdint.h>
+
 
 //Arquivo com funções relacionadas à iteração o set
 
@@ -26,3 +29,4 @@ double complex calc_c(int largura_atual, int altura_atual, float incremento_x, f
     imag_c = MIN_IMG + incremento_y * altura_atual;
     return CMPLX(real_c, imag_c);
 }
+

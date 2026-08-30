@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CFLAGS = -Wall -Wextra -std=c11 -fopenmp
 TARGET = mandelbrot
 OBJECTS = main.o mandelmath.o mandelgraph.o
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $(TARGET) -lm
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) -lm
 
 mandelmath.o : mandelmath.c header.h
 	$(CC) $(CFLAGS) -c mandelmath.c

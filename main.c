@@ -1,61 +1,53 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>
 #include <omp.h>
 #include <pthread.h>
 #include "header.h"
+#include <time.h>
+#include <stdint.h>
 
 int main(int argc, char *argv[]) {
 
-/*
+
     if (argc!=5){
-        printf("[ERRO]Quantidade de argumentos inválida! A formatação deve ser:\n");
-        printf("-> ./mandelbrot [largura] [altura] [max_iteracoes] [num_threads]");
+        fprintf(stderr,"[ERRO]Quantidade de argumentos inválida! A formatação deve ser:\n-> ./mandelbrot [largura] [altura] [max_iteracoes] [num_threads]");
         return -1;
     }
-*/
+
     int largura = (atoi(argv[1])),
     altura = (atoi(argv[2]));
 
     if (largura<1||altura<1){
-        printf("ERRO: A altura e a largura devem ser inteiros maiores que 0!");
+        fprintf(stderr,"ERRO: A altura e a largura devem ser inteiros maiores que 0!");
+        return -1;
     }
 
     int max_iteracoes = atoi(argv[3]);
 
     if (max_iteracoes<1){
-        printf("[ERRO] Quantidade de Iterações Inválida! Deve haver ao menos uma iteração.");
+        fprintf(stderr,"[ERRO] Quantidade de Iterações Inválida");
         return -1;
     }
 
-    float incremento_x= (MAX_REAL-MIN_REAL)/(largura-1);
-    float incremento_y= (MAX_IMG-MIN_IMG)/(altura-1);
-    
-    //exemplo de serial
-    FILE *fp = fopen("mandelbrot_mla_serial.pgm", "w");
-    if (fp==NULL){
-        fprintf(stderr, "[ERRO]Não foi possível abrir o arquivo");
+    int threads = atoi(argv[4]);
+
+    if (threads<1){
+        fprintf(stderr,"[ERRO] O processo deve usar ao menos 1 thread.");
         return -1;
     }
 
-    int current_iteracoes;
-    float current_pixel;
-    double complex current_c;
+    float incremento_x= (MAX_REAL-MIN_REAL)/(largura);
+    float incremento_y= (MAX_IMG-MIN_IMG)/(altura);
     
-    for (int i = 0;i<altura;i++){
-        for (int j = 0;j<largura;j++){
-    
-            current_c = calc_c(j,i,incremento_x,incremento_y);
-            current_iteracoes = mandelbrot(current_c, max_iteracoes);
-            current_pixel = intensity(current_iteracoes, max_iteracoes);
-            fprintf(fp,"%d ", ((int)current_pixel));
-    
-        }
-    
-        fprintf(fp,"\n");
+    //Execução Serial
+    if (exec_serial(altura, largura, incremento_x, incremento_y, max_iteracoes) != 0) {
+    return -1;
     }
     
-    fclose(fp);
+    //Execução OpenPM
+
 
     return 0;
 }
