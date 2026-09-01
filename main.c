@@ -51,5 +51,10 @@ int main(int argc, char *argv[]) {
     return -1;
     }
 
+    //Execução Pthreads 1
+    if (exec_pthreads(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads) != 0) {
+    return -1;
+    }
+
     return 0;
 }
