@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <time.h>
 #include <stdint.h>
-#include <pthread.h>
 
 #define MAX_REAL 1.0
 #define MIN_REAL -2.0

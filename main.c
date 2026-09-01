@@ -38,6 +38,19 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    if ((size_t)largura > SIZE_MAX / (size_t)altura) {
+        fprintf(stderr, "[ERRO] Dimensões grandes demais.\n");
+        return -1;
+    }
+
+    size_t quantidade_pixels =
+        (size_t)largura * (size_t)altura;
+
+    if (quantidade_pixels > SIZE_MAX / sizeof(int)) {
+        fprintf(stderr, "[ERRO] Imagem grande demais para alocação.\n");
+        return -1;
+    }
+
     float incremento_x= (MAX_REAL-MIN_REAL)/(largura);
     float incremento_y= (MAX_IMG-MIN_IMG)/(altura);
     double 
@@ -45,6 +58,7 @@ int main(int argc, char *argv[]) {
         valor_openmp,
         valor_pthread1,
         valor_pthread2;
+
 
     //Execução Serial
     if (exec_serial(altura, largura, incremento_x, incremento_y, max_iteracoes, &valor_serial) != 0) {

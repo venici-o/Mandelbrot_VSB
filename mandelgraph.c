@@ -22,7 +22,7 @@ typedef struct {
 int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, double*valor){
     struct timespec inicio;
     struct timespec fim;
-    int *save= (int *)malloc(largura*altura*sizeof(int));
+    int *save= malloc((size_t)largura*(size_t)altura*sizeof(int));
     if (save==NULL){
         fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
         return -1;
@@ -73,7 +73,7 @@ int exec_openmp(int altura, int largura, float incremento_x, float incremento_y,
     struct timespec inicio;
     struct timespec fim;
 
-    int *save= (int *)malloc(largura*altura*sizeof(int));
+    int *save= malloc((size_t)largura*(size_t)altura*sizeof(int));
     if (save==NULL){
         fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
         return -1;
@@ -141,14 +141,14 @@ int exec_pthreads1(int altura, int largura, float incremento_x, float incremento
     struct timespec inicio;
     struct timespec fim;
 
-    pthread_t *pthreads= malloc(num_threads * sizeof(pthread_t));
+    pthread_t *pthreads= malloc((size_t)num_threads * sizeof*pthreads);
     if (pthreads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
         return -1;
     }
 
-    DataThread *data_threads= malloc(num_threads * sizeof(DataThread));
+    DataThread *data_threads= malloc((size_t)num_threads * sizeof*data_threads);
     if (data_threads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
@@ -156,9 +156,11 @@ int exec_pthreads1(int altura, int largura, float incremento_x, float incremento
         return -1;
     }
 
-    int *save= (int *)malloc(largura*altura*sizeof(int));
+    int *save= malloc((size_t)largura*(size_t)altura*sizeof(int));
     if (save==NULL){
         fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
+        free(pthreads);
+        free(data_threads);
         return -1;
     }
 
@@ -177,6 +179,8 @@ int exec_pthreads1(int altura, int largura, float incremento_x, float incremento
     if (fp==NULL){
         fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
         free(save);
+        free(pthreads);
+        free(data_threads);
         return -1;
         
     }
@@ -192,15 +196,15 @@ int exec_pthreads1(int altura, int largura, float incremento_x, float incremento
         
         for (int j = 0; j < total_threads; j++) {
             pthread_join(pthreads[j], NULL);
+            }
+
             fclose(fp);
             free(save);
             free(pthreads);
             free(data_threads);
+            return -1;
             }
-
-        return -1;
-        }
-
+        
         total_threads++;
     }
 
@@ -248,14 +252,14 @@ int exec_pthreads2(int altura, int largura, float incremento_x, float incremento
     struct timespec inicio;
     struct timespec fim;
 
-    pthread_t *pthreads= malloc(num_threads * sizeof(pthread_t));
+    pthread_t *pthreads= malloc((size_t)num_threads * sizeof*pthreads);
     if (pthreads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
         return -1;
     }
 
-    DataThread *data_threads= malloc(num_threads * sizeof(DataThread));
+    DataThread *data_threads= malloc((size_t)num_threads * sizeof*data_threads);
     if (data_threads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
@@ -263,9 +267,11 @@ int exec_pthreads2(int altura, int largura, float incremento_x, float incremento
         return -1;
     }
 
-    int *save= (int *)malloc(largura*altura*sizeof(int));
+    int *save= malloc((size_t)largura*(size_t)altura*sizeof *save);
     if (save==NULL){
         fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
+        free(pthreads);
+        free(data_threads);
         return -1;
     }
 
@@ -284,19 +290,33 @@ int exec_pthreads2(int altura, int largura, float incremento_x, float incremento
     if (fp==NULL){
         fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
         free(save);
+        free(pthreads);
+        free(data_threads);
         return -1;
         
     }
 
     clock_gettime(CLOCK_MONOTONIC, &inicio);
     
+    int total_threads=0;
     for (int i=0; i<num_threads; i++){
         int chamada = pthread_create(&pthreads[i], NULL, workblock2, &data_threads[i]);
 
-    if (chamada!=0){
+        if (chamada!=0){
         fprintf(stderr, "[ERRO] Falha ao tentar criar Pthreads.");
-        return -1;
-        }
+        
+        for (int j = 0; j < total_threads; j++) {
+            pthread_join(pthreads[j], NULL);
+            }
+
+            fclose(fp);
+            free(save);
+            free(pthreads);
+            free(data_threads);
+            return -1;
+            }
+        
+        total_threads++;
     }
 
     for (int i = 0; i < num_threads; i++){
