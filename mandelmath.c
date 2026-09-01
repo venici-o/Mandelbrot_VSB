@@ -30,3 +30,8 @@ double complex calc_c(int largura_atual, int altura_atual, float incremento_x, f
     return CMPLX(real_c, imag_c);
 }
 
+int intensity(int iteracoes, int max_iteracoes){
+    int color = (255/(float)max_iteracoes)*iteracoes;
+    return color;
+}
+

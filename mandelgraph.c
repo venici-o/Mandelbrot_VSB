@@ -19,11 +19,6 @@ typedef struct {
     int *save;
 } DataThread;
 
-int intensity(int iteracoes, int max_iteracoes){
-    int color = (255/(float)max_iteracoes)*iteracoes;
-    return color;
-}
-
 int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes){
     struct timespec inicio;
     struct timespec fim;
@@ -144,6 +139,84 @@ void *workblock(void *arg){
 }
 
 //Pthread 1
+int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
+    struct timespec inicio;
+    struct timespec fim;
+
+    pthread_t *pthreads= malloc(num_threads * sizeof(pthread_t));
+    if (pthreads==NULL){
+        fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
+        free(pthreads);
+    }
+
+    DataThread *data_threads= malloc(num_threads * sizeof(DataThread));
+    if (data_threads==NULL){
+        fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
+        free(pthreads);
+        free(data_threads);
+    }
+
+    int *save= (int *)malloc(largura*altura*sizeof(int));
+    if (save==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível alocar a memória.");
+        return -1;
+    }
+
+    for (int i=0;i<num_threads;i++){
+        data_threads[i].id=i;
+        data_threads[i].altura=altura;
+        data_threads[i].largura=largura;
+        data_threads[i].incremento_x=incremento_x;
+        data_threads[i].incremento_y=incremento_y;
+        data_threads[i].max_iteracoes=max_iteracoes;
+        data_threads[i].num_threads=num_threads;
+        data_threads[i].save=save;
+    }
+
+    FILE *fp = fopen("mandelbrot_vsb_pthread1.pgm", "w");
+    if (fp==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
+        free(save);
+        return -1;
+        
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &inicio);
+    
+    for (int i=0; i<num_threads; i++){
+        int chamada = pthread_create(&pthreads[i], NULL, workblock, &data_threads[i]);
+
+    if (chamada!=0){
+        fprintf(stderr, "[ERRO] Falha ao tentar criar Pthreads.");
+        return -1;
+        }
+    }
+
+    for (int i = 0; i < num_threads; i++){
+        pthread_join(pthreads[i], NULL);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &fim);
+
+    for (int i = 0;i<altura;i++){
+        for (int j = 0;j<largura;j++){
+            fprintf(fp,"%d ", save[largura*i + j]);
+        }
+    
+        fprintf(fp,"\n");
+    }
+    
+    fclose(fp);
+    free (save);
+    free(pthreads);
+    free(data_threads);
+    double exec_time_pthread1 = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+    
+    printf ("Pthread 1: %.9f\n", exec_time_pthread1);
+    return 0;
+}
+
+//Pthread 2
 int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
     struct timespec inicio;
     struct timespec fim;

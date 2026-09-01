@@ -17,3 +17,6 @@ main.o: main.c header.h
 
 clean:
 	rm -f *.o $(TARGET)
+
+pgmclean:
+	rm -f mandelbrot_vsb_*.pgm times.txt
