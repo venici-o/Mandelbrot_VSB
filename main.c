@@ -40,21 +40,43 @@ int main(int argc, char *argv[]) {
 
     float incremento_x= (MAX_REAL-MIN_REAL)/(largura);
     float incremento_y= (MAX_IMG-MIN_IMG)/(altura);
-    
+    double 
+        valor_serial,
+        valor_openmp,
+        valor_pthread1,
+        valor_pthread2;
+
     //Execução Serial
-    if (exec_serial(altura, largura, incremento_x, incremento_y, max_iteracoes) != 0) {
+    if (exec_serial(altura, largura, incremento_x, incremento_y, max_iteracoes, &valor_serial) != 0) {
     return -1;
     }
 
     //Execução OpenPM
-    if (exec_openmp(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads) != 0) {
+    if (exec_openmp(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads, &valor_openmp) != 0) {
     return -1;
     }
 
     //Execução Pthreads 1
-    if (exec_pthreads(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads) != 0) {
+    if (exec_pthreads1(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads, &valor_pthread1) != 0) {
     return -1;
     }
 
+    //Execução Pthreads 2
+    if (exec_pthreads2(altura, largura, incremento_x, incremento_y, max_iteracoes, num_threads, &valor_pthread2) != 0) {
+    return -1;
+    }
+
+    FILE *fp = fopen("times.txt", "w");
+    if (fp==NULL){
+        fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
+        return -1;
+    }
+    
+    fprintf(fp,"Serial: %.6fs\n", valor_serial);
+    fprintf(fp,"OpenMP: %.6fs\n", valor_openmp);
+    fprintf(fp,"Pthreads1: %.6fs\n", valor_pthread1);
+    fprintf(fp,"Pthreads2: %.6fs\n", valor_pthread2);
+    fclose(fp);
+    
     return 0;
 }

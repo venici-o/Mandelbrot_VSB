@@ -16,8 +16,9 @@
 int mandelbrot(double complex c, int max_iteracoes);
 int intensity(int iteracoes, int max_iteracoes);
 double complex calc_c(int largura_atual, int altura_atual, float incremento_x, float incremento_y);
-int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes);
-int exec_openmp(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads);
-int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads);
+int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, double*valor_serial);
+int exec_openmp(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads, double*valor_openmp);
+int exec_pthreads1(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads,double*valor_pthread1);
+int exec_pthreads2(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads,double*valor_pthread2);
 
 #endif

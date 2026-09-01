@@ -19,7 +19,7 @@ typedef struct {
     int *save;
 } DataThread;
 
-int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes){
+int exec_serial(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, double*valor){
     struct timespec inicio;
     struct timespec fim;
     int *save= (int *)malloc(largura*altura*sizeof(int));
@@ -63,14 +63,13 @@ int exec_serial(int altura, int largura, float incremento_x, float incremento_y,
     
     fclose(fp);
     free (save);
-    double exec_time_serial = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
-    
-    printf ("Serial: %.9f\n", exec_time_serial);
+    *valor = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+
     return 0;
 }
 
 //OpenMP
-int exec_openmp(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
+int exec_openmp(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads, double*valor){
     struct timespec inicio;
     struct timespec fim;
 
@@ -113,14 +112,13 @@ int exec_openmp(int altura, int largura, float incremento_x, float incremento_y,
     
     fclose(fp);
     free (save);
-    double exec_time_openmp = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
-    
-    printf ("OpenMP: %.9f\n", exec_time_openmp);
+    *valor = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+
     return 0;
 }
 
-//Pthreads; Workblock
-void *workblock(void *arg){
+//Pthreads; Workblock 1
+void *workblock1(void *arg){
     DataThread *data = (DataThread *)arg;
     
     int thread_inicio = data->id*data->altura / data->num_threads;
@@ -139,7 +137,7 @@ void *workblock(void *arg){
 }
 
 //Pthread 1
-int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
+int exec_pthreads1(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads, double*valor){
     struct timespec inicio;
     struct timespec fim;
 
@@ -147,6 +145,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
     if (pthreads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
+        return -1;
     }
 
     DataThread *data_threads= malloc(num_threads * sizeof(DataThread));
@@ -154,6 +153,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
         free(data_threads);
+        return -1;
     }
 
     int *save= (int *)malloc(largura*altura*sizeof(int));
@@ -183,13 +183,25 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
 
     clock_gettime(CLOCK_MONOTONIC, &inicio);
     
+    int total_threads=0;
     for (int i=0; i<num_threads; i++){
-        int chamada = pthread_create(&pthreads[i], NULL, workblock, &data_threads[i]);
+        int chamada = pthread_create(&pthreads[i], NULL, workblock1, &data_threads[i]);
 
-    if (chamada!=0){
+        if (chamada!=0){
         fprintf(stderr, "[ERRO] Falha ao tentar criar Pthreads.");
+        
+        for (int j = 0; j < total_threads; j++) {
+            pthread_join(pthreads[j], NULL);
+            fclose(fp);
+            free(save);
+            free(pthreads);
+            free(data_threads);
+            }
+
         return -1;
         }
+
+        total_threads++;
     }
 
     for (int i = 0; i < num_threads; i++){
@@ -210,14 +222,29 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
     free (save);
     free(pthreads);
     free(data_threads);
-    double exec_time_pthread1 = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
-    
-    printf ("Pthread 1: %.9f\n", exec_time_pthread1);
+    *valor = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+
     return 0;
+}
+
+//Pthreads; Workblock 2
+void *workblock2(void *arg){
+    DataThread *data = (DataThread *)arg;
+
+    for (int i = data->id; i < data->altura; i+=data->num_threads){
+        for (int j = 0; j < data->largura; j++){
+            double complex current_c = calc_c(j,i,data->incremento_x,data->incremento_y);
+            int current_iteracoes = mandelbrot(current_c, data->max_iteracoes);
+            int current_pixel = intensity(current_iteracoes, data->max_iteracoes);
+            data->save[data->largura*i + j] = current_pixel;
+        }   
+    }
+
+    return NULL;
 }
 
 //Pthread 2
-int exec_pthreads(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads){
+int exec_pthreads2(int altura, int largura, float incremento_x, float incremento_y, int max_iteracoes, int num_threads, double*valor){
     struct timespec inicio;
     struct timespec fim;
 
@@ -225,6 +252,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
     if (pthreads==NULL){
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
+        return -1;
     }
 
     DataThread *data_threads= malloc(num_threads * sizeof(DataThread));
@@ -232,6 +260,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
         fprintf(stderr,"[ERRO] Não foi possível alocar memória para as threads!");
         free(pthreads);
         free(data_threads);
+        return -1;
     }
 
     int *save= (int *)malloc(largura*altura*sizeof(int));
@@ -251,7 +280,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
         data_threads[i].save=save;
     }
 
-    FILE *fp = fopen("mandelbrot_vsb_pthread1.pgm", "w");
+    FILE *fp = fopen("mandelbrot_vsb_pthread2.pgm", "w");
     if (fp==NULL){
         fprintf(stderr, "[ERRO] Não foi possível abrir o arquivo.");
         free(save);
@@ -262,7 +291,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
     clock_gettime(CLOCK_MONOTONIC, &inicio);
     
     for (int i=0; i<num_threads; i++){
-        int chamada = pthread_create(&pthreads[i], NULL, workblock, &data_threads[i]);
+        int chamada = pthread_create(&pthreads[i], NULL, workblock2, &data_threads[i]);
 
     if (chamada!=0){
         fprintf(stderr, "[ERRO] Falha ao tentar criar Pthreads.");
@@ -288,9 +317,7 @@ int exec_pthreads(int altura, int largura, float incremento_x, float incremento_
     free (save);
     free(pthreads);
     free(data_threads);
-    double exec_time_pthread1 = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
-    
-    printf ("Pthread 1: %.9f\n", exec_time_pthread1);
+    *valor = (fim.tv_sec - inicio.tv_sec) + (fim.tv_nsec - inicio.tv_nsec) / 1000000000.0;
+
     return 0;
 }
-
